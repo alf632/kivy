@@ -3,21 +3,17 @@
 #:set dicke 5
 #:set hoehe 200
 #:set breite 600
+#:set radius 50
 
 <BounceBall>:
-    size: 50, 50
+    size: radius, radius
     canvas:
         Ellipse:
             pos: self.pos
             size: self.size
 
-<BahnGame>:
-    ball: bounce_ball    
-    debug: debug_label
-#    oben: balken_oben
-#    unten: balken_unten
-#    links: balken_links
-#    rechts: balken_rechts
+<Boundry>:
+    size: breite, hoehe
     canvas:
         Rectangle:
             id: balken_links
@@ -39,6 +35,36 @@
             pos: self.center_x -breite/2+dicke/2, self.center_y - hoehe/2
             size: breite , dicke
 
+
+<BahnGame>:
+    ball: bounce_ball    
+    debug: debug_label
+    boundry: boundry
+#    oben: balken_oben
+#    unten: balken_unten
+#    links: balken_links
+#    rechts: balken_rechts
+#    canvas:
+#        Rectangle:
+#            id: balken_links
+#            pos: self.center_x - breite/2 , self.center_y - hoehe/2+dicke/2
+#            size: dicke, hoehe
+#
+#        Rectangle:
+#            id: balken_rechts
+#            pos: self.center_x + breite/2, self.center_y - hoehe/2+dicke/2
+#            size: dicke, hoehe
+#
+#        Rectangle:
+#            id: balken_oben
+#            pos: self.center_x -breite/2+dicke/2, self.center_y + hoehe/2
+#            size: breite , dicke
+#
+#        Rectangle:
+#            id: balken_unten
+#            pos: self.center_x -breite/2+dicke/2, self.center_y - hoehe/2
+#            size: breite , dicke
+
     Label:
         id: debug_label
         font_size: 20
@@ -49,3 +75,6 @@
         id: bounce_ball
         center: self.parent.center
 
+    Boundry:
+        id:boundry
+        center: self.parent.center

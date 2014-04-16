@@ -1,0 +1,51 @@
+#:kivy 1.0.9
+
+#:set dicke 5
+#:set hoehe 200
+#:set breite 600
+
+<BounceBall>:
+    size: 50, 50
+    canvas:
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
+<BahnGame>:
+    ball: bounce_ball    
+    debug: debug_label
+#    oben: balken_oben
+#    unten: balken_unten
+#    links: balken_links
+#    rechts: balken_rechts
+    canvas:
+        Rectangle:
+            id: balken_links
+            pos: self.center_x - breite/2 , self.center_y - hoehe/2+dicke/2
+            size: dicke, hoehe
+
+        Rectangle:
+            id: balken_rechts
+            pos: self.center_x + breite/2, self.center_y - hoehe/2+dicke/2
+            size: dicke, hoehe
+
+        Rectangle:
+            id: balken_oben
+            pos: self.center_x -breite/2+dicke/2, self.center_y + hoehe/2
+            size: breite , dicke
+
+        Rectangle:
+            id: balken_unten
+            pos: self.center_x -breite/2+dicke/2, self.center_y - hoehe/2
+            size: breite , dicke
+
+    Label:
+        id: debug_label
+        font_size: 20
+        center_x: root.center_x
+        text: "0"
+
+    BounceBall:
+        id: bounce_ball
+        center: self.parent.center
+

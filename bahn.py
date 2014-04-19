@@ -6,7 +6,6 @@ from kivy.clock import Clock
 from random import randint
 from kivy.uix.button import Button
 
-
 class Boundry(Widget):
     pass
 
@@ -30,11 +29,22 @@ class BahnGame(Widget):
 	for bball in self.children:
             if "BounceBall object" in str(bball):
 
-                if bball.top > self.boundry.top or bball.center_y-(bball.top-bball.center_y) < self.boundry.center_y-(self.boundry.top-self.boundry.center_y):
-                        bball.velocity_y *= -1
-                if bball.right > self.boundry.right or bball.center_x-(bball.right-bball.center_x) < self.boundry.center_x-(self.boundry.right-self.boundry.center_x):
-                        bball.velocity_x *= -1
-                bball.move()
+		if bball.top > self.boundry.top or bball.center_y-(bball.top-bball.center_y) < self.boundry.center_y-(self.boundry.top-self.boundry.center_y):
+		        bball.velocity_y *= -1
+		if bball.right > self.boundry.right or bball.center_x-(bball.right-bball.center_x) < self.boundry.center_x-(self.boundry.right-self.boundry.center_x):
+		        bball.velocity_x *= -1
+
+		if bball.velocity_x > 3:
+			bball.velocity_x = 3
+                if bball.velocity_x < -3:
+                        bball.velocity_x = -3
+                if bball.velocity_y > 3:
+                        bball.velocity_y = 3
+                if bball.velocity_y < -3:
+                        bball.velocity_y = -3
+
+		bball.move()
+
     def find_neighbours(self):
 	for bball in self.children:
 	    bball.neighbours=[]
@@ -42,21 +52,20 @@ class BahnGame(Widget):
 		for obball in self.children:
 		    if "BounceBall object" in str(obball):
 			if str(bball) != str(obball):
-			    self.debug.text=str(bball.neighbours)
-                            if Vector(bball.center).distance(obball.center) < 50:
-				pass
-#				bball.velocity_x=1
-#				bball.velocity_y=1
-			    elif Vector(bball.center).distance(obball.center) < 100:
-				if bball.center_y > obball.center_y:
-				    bball.velocity_y += 1
-				elif bball.center_y < obball.center_y:
-				    bball.velocity_y += -1
+			    dist=Vector(bball.center).distance(obball.center)
+#			    if dist <= 50:
+#                                obballbball = (Vector(bball.pos)-Vector(obball.pos)).normalize()
+#				obballbball = Vector(bball.velocity)+obballbball
+#				self.debug.text=str(obballbball)
+#                                bball.velocity_x=obballbball.x
+#                                bball.velocity_y=obballbball.y
 
-				if bball.center_x > obball.center_x:
-				    bball.velocity_x += 1
-                                elif bball.center_x < obball.center_x:
-                                    bball.velocity_x += -1
+			    if dist < 100:
+				obballbball = 10* (Vector(bball.pos)-Vector(obball.pos)) #.normalize()
+		 		obballbball = Vector(bball.velocity)+(obballbball/(dist*dist))
+				self.debug.text=str(obballbball)
+				bball.velocity_x=obballbball.x
+				bball.velocity_y=obballbball.y
 
 				
 

@@ -1,20 +1,28 @@
 #:kivy 1.0.9
 
 #:set dicke 5
-#:set hoehe 200
+#:set hoehe 600
 #:set breite 600
 #:set radius 50
 
 <BounceBall>:
     size: radius, radius
     canvas:
+        Color:
+            rgba: 0, 0, 1, .5
         Ellipse:
             pos: self.pos
             size: self.size
-
+        Color:
+            rgba: 1, 0, 0, .5
+        Line:
+            points: self.center_x, self.center_y, self.center_x+self.velocity_x*4, self.center_y+self.velocity_y*7
+            width: 3
 <Boundry>:
     size: breite, hoehe
     canvas:
+        Color:
+            rgba: 1, 1, 1, .5
         Rectangle:
             id: balken_links
             pos: self.center_x - breite/2 , self.center_y - hoehe/2+dicke/2

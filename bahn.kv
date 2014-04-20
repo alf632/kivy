@@ -18,6 +18,16 @@
         Line:
             points: self.center_x, self.center_y, self.center_x+self.velocity_x*4, self.center_y+self.velocity_y*7
             width: 3
+
+<Barier>:
+    height: self.height
+    width: self.width
+    canvas:
+        Color: 
+            rgba: 1, 1, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
 <Boundry>:
     size: breite, hoehe
     canvas:
@@ -48,30 +58,7 @@
     ball: bounce_ball    
     debug: debug_label
     boundry: boundry
-#    oben: balken_oben
-#    unten: balken_unten
-#    links: balken_links
-#    rechts: balken_rechts
-#    canvas:
-#        Rectangle:
-#            id: balken_links
-#            pos: self.center_x - breite/2 , self.center_y - hoehe/2+dicke/2
-#            size: dicke, hoehe
-#
-#        Rectangle:
-#            id: balken_rechts
-#            pos: self.center_x + breite/2, self.center_y - hoehe/2+dicke/2
-#            size: dicke, hoehe
-#
-#        Rectangle:
-#            id: balken_oben
-#            pos: self.center_x -breite/2+dicke/2, self.center_y + hoehe/2
-#            size: breite , dicke
-#
-#        Rectangle:
-#            id: balken_unten
-#            pos: self.center_x -breite/2+dicke/2, self.center_y - hoehe/2
-#            size: breite , dicke
+    barier: barier
 
     Label:
         id: debug_label
@@ -85,4 +72,8 @@
 
     Boundry:
         id:boundry
+        center: self.parent.center
+
+    Barier:
+        id:barier
         center: self.parent.center

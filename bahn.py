@@ -9,11 +9,27 @@ from kivy.uix.button import Button
 class Boundry(Widget):
     pass
 
+class Barier(Widget):
+    height = NumericProperty(50)
+    width = NumericProperty(50)
+    tmp=[0,0]
+    mode=0
+    def on_touch_down(self, touch):
+	if abs((Vector(self.center)-touch.pos).x) <= self.width/2 and abs((Vector(self.center)-touch.pos).y) <= self.height/2:
+	    self.mode=1
+	    self.tmp=touch.pos
+	    direction=Vector(self.center)-(touch.pos)
+	    print direction
+    def on_touch_move(self, touch):
+	if self.mode == 1:
+	    self.center = touch.pos
+    def on_touch_up(self, touch):
+	self.mode=0
+
 class BounceBall(Widget):
     velocity_x = NumericProperty(randint(-2,2))
     velocity_y = NumericProperty(randint(-2,2))
     velocity = ReferenceListProperty(velocity_x, velocity_y)
-    neighbours=[]
     def move(self):
         self.pos = Vector(*self.velocity) + self.pos
 
@@ -25,7 +41,7 @@ class BahnGame(Widget):
 	self.add_widget(BounceBall(pos=self.center,velocity_x=randint(-2,2), velocity_y=randint(-2,2)))
     def update(self, dt):
 	self.find_neighbours()
-
+	self.debug.text=str(self.children)
 	for bball in self.children:
             if "BounceBall object" in str(bball):
 
@@ -47,7 +63,6 @@ class BahnGame(Widget):
 
     def find_neighbours(self):
 	for bball in self.children:
-	    bball.neighbours=[]
 	    if "BounceBall object" in str(bball):
 		for obball in self.children:
 		    if "BounceBall object" in str(obball):

@@ -5,6 +5,7 @@ from kivy.vector import Vector
 from kivy.clock import Clock
 from random import randint
 from kivy.uix.button import Button
+from kivy.graphics import Ellipse, Color, Line
 
 class Boundry(Widget):
     pass
@@ -16,15 +17,31 @@ class Barier(Widget):
     mode=0
     def on_touch_down(self, touch):
 	if abs((Vector(self.center)-touch.pos).x) <= self.width/2 and abs((Vector(self.center)-touch.pos).y) <= self.height/2:
-	    self.mode=1
 	    self.tmp=touch.pos
 	    direction=Vector(self.center)-(touch.pos)
-	    print direction
+	    if abs(direction.y) < self.height/4 and abs(direction.x) < self.width/4:
+		self.mode=1
+
     def on_touch_move(self, touch):
-	if self.mode == 1:
-	    self.center = touch.pos
+        if abs((Vector(self.center)-touch.pos).x) <= self.width/2 and abs((Vector(self.center)-touch.pos).y) <= self.height/2:
+	    if self.mode == 0:
+	        direction=Vector(self.center)-(touch.pos)
+	        if direction.y <= -self.height/4+20: # oben
+	            self.height=self.height + (Vector(touch.pos)-(self.tmp)).y
+	        if direction.y >= self.height/4-20: # unten
+	    	    self.height=self.height - (Vector(touch.pos)-(self.tmp)).y
+	    	    self.y = self.y + (Vector(touch.pos)-(self.tmp)).y
+	        if direction.x <= -self.width/4+20: # rechts
+	            self.width=self.width + (Vector(touch.pos)-(self.tmp)).x
+	        if direction.x >= self.width/4-20: # links
+	            self.width=self.width - (Vector(touch.pos)-(self.tmp)).x
+	    	    self.x = self.x + (Vector(touch.pos)-(self.tmp)).x
+	    	self.tmp=touch.pos
+	    else:
+		    self.center=touch.pos
+
     def on_touch_up(self, touch):
-	self.mode=0
+	self.mode = 0
 
 class BounceBall(Widget):
     velocity_x = NumericProperty(randint(-2,2))
@@ -40,8 +57,8 @@ class BahnGame(Widget):
     def add_ball(self,instance):
 	self.add_widget(BounceBall(pos=self.center,velocity_x=randint(-2,2), velocity_y=randint(-2,2)))
     def update(self, dt):
-	self.find_neighbours()
-	self.debug.text=str(self.children)
+	self.keep_distance()
+	self.mind_barier()
 	for bball in self.children:
             if "BounceBall object" in str(bball):
 
@@ -61,28 +78,52 @@ class BahnGame(Widget):
 
 		bball.move()
 
-    def find_neighbours(self):
+    def keep_distance(self):
 	for bball in self.children:
 	    if "BounceBall object" in str(bball):
 		for obball in self.children:
 		    if "BounceBall object" in str(obball):
 			if str(bball) != str(obball):
 			    dist=Vector(bball.center).distance(obball.center)
-#			    if dist <= 50:
-#                                obballbball = (Vector(bball.pos)-Vector(obball.pos)).normalize()
-#				obballbball = Vector(bball.velocity)+obballbball
-#				self.debug.text=str(obballbball)
-#                                bball.velocity_x=obballbball.x
-#                                bball.velocity_y=obballbball.y
 
-			    if dist < 100:
+			    if dist < 100 and dist > 0:
 				obballbball = 10* (Vector(bball.pos)-Vector(obball.pos)) #.normalize()
 		 		obballbball = Vector(bball.velocity)+(obballbball/(dist*dist))
-				self.debug.text=str(obballbball)
 				bball.velocity_x=obballbball.x
 				bball.velocity_y=obballbball.y
 
-				
+    def mind_barier(self):
+	for bball in self.children:
+	    if "BounceBall object" in str(bball):
+		for barier in self.children:
+		    if "Barier object" in str(barier):
+			if bball.collide_widget(barier):
+			    nearest=Vector(barier.center)
+			    nearestdist=nearest.distance(bball.center)
+			    if barier.height > barier.width:
+				for y in range(int(barier.y), int(barier.y+barier.height)):
+				    dist = Vector(barier.center_x,y).distance(bball.center)
+				    if dist < nearestdist:
+					nearest = Vector(barier.center_x,y)
+					nearestdist=dist
+			    else:
+				for x in range(int(barier.x), int(barier.x+barier.width)):
+				    dist = Vector(x,barier.center_y).distance(bball.center)
+				    if dist < nearestdist:
+					nearest = Vector(x,barier.center_y)
+					nearestdist=dist
+			    with self.canvas:
+				Color(1, 0, 0)
+				Ellipse(pos=nearest, size=(5,5))
+			    barierbball = 20* Vector(nearest)-Vector(bball.center)
+			    if nearestdist==0:
+				nearestdist=0.1
+			    barierbball = Vector(bball.velocity)+(barierbball/(nearestdist*nearestdist))
+                            with bball.canvas:
+                                Line(points=[nearest.x+barierbball.x, nearest.y+barierbball.y , nearest.x, nearest.y], width=1)
+			    self.debug.text=str(barierbball)
+			    bball.velocity_x=barierbball.x
+			    bball.velocity_y=barierbball.y
 
 class BahnApp(App):
     def build(self):

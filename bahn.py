@@ -6,15 +6,17 @@ from kivy.clock import Clock
 from random import randint
 from kivy.uix.button import Button
 from kivy.graphics import Ellipse, Color, Line
+from kivy.uix.scatter import Scatter
 
 class Boundry(Widget):
     pass
 
 class Barier(Widget):
-    height = NumericProperty(50)
-    width = NumericProperty(50)
+    height = NumericProperty(100)
+    width = NumericProperty(100)
     tmp=[0,0]
     mode=0
+
     def on_touch_down(self, touch):
 	if abs((Vector(self.center)-touch.pos).x) <= self.width/2 and abs((Vector(self.center)-touch.pos).y) <= self.height/2:
 	    self.tmp=touch.pos
@@ -23,6 +25,7 @@ class Barier(Widget):
 		self.mode=1
 
     def on_touch_move(self, touch):
+	pass
         if abs((Vector(self.center)-touch.pos).x) <= self.width/2 and abs((Vector(self.center)-touch.pos).y) <= self.height/2:
 	    if self.mode == 0:
 	        direction=Vector(self.center)-(touch.pos)
@@ -56,6 +59,8 @@ class BahnGame(Widget):
     boundry = ObjectProperty(None)
     def add_ball(self,instance):
 	self.add_widget(BounceBall(pos=self.center,velocity_x=randint(-2,2), velocity_y=randint(-2,2)))
+    def add_barier(self,instance):
+	self.add_widget(Barier(pos = (100, 100)))
     def update(self, dt):
 	self.keep_distance()
 	self.mind_barier()
@@ -112,25 +117,27 @@ class BahnGame(Widget):
 				    if dist < nearestdist:
 					nearest = Vector(x,barier.center_y)
 					nearestdist=dist
-			    with self.canvas:
-				Color(1, 0, 0)
-				Ellipse(pos=nearest, size=(5,5))
-			    barierbball = 20* Vector(nearest)-Vector(bball.center)
+#			    with self.canvas:
+#				Color(1, 0, 0)
+#				Ellipse(pos=nearest, size=(5,5))
+			    barierbball = 20* (Vector(bball.center)-Vector(nearest))
 			    if nearestdist==0:
 				nearestdist=0.1
 			    barierbball = Vector(bball.velocity)+(barierbball/(nearestdist*nearestdist))
-                            with bball.canvas:
-                                Line(points=[nearest.x+barierbball.x, nearest.y+barierbball.y , nearest.x, nearest.y], width=1)
-			    self.debug.text=str(barierbball)
+#                            with self.canvas:
+#                                Line(points=[nearest.x+barierbball.x, nearest.y+barierbball.y , nearest.x, nearest.y], width=1)
 			    bball.velocity_x=barierbball.x
 			    bball.velocity_y=barierbball.y
 
 class BahnApp(App):
     def build(self):
 	game = BahnGame()
-	but1 = Button(text='#')
+	but1 = Button(text='add Ball', size=(100,100), pos=(0,0))
+	but2 = Button(text='add Barier', size=(100,100), pos=(100,0))
 	but1.bind(on_press=game.add_ball)
+	but2.bind(on_press=game.add_barier)
 	game.add_widget(but1)
+	game.add_widget(but2)
 	Clock.schedule_interval(game.update, 1.0/15.0)
         return game
 

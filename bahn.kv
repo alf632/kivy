@@ -3,10 +3,9 @@
 #:set dicke 5
 #:set hoehe 200
 #:set breite 600
-#:set radius 50
 
 <BounceBall>:
-    size: radius, radius
+    size: self.radius, self.radius
     canvas:
         Color:
             rgba: 0, 0, 1, .5
@@ -16,18 +15,23 @@
         Color:
             rgba: 1, 0, 0, .5
         Line:
-            points: self.center_x, self.center_y, self.center_x+self.velocity_x*5, self.center_y+self.velocity_y*5
+            points: self.center_x, self.center_y, self.center_x+self.velocity_x*(self.radius/10), self.center_y+self.velocity_y*(self.radius/10)
             width: 3
 
 <Barier>:
     height: self.height
     width: self.width
     canvas:
+        Color:
+            rgba: 0, 1, 0, .25
+        Rectangle:
+            pos: self.x , self.y
+            size: self.width , self.height
         Color: 
             rgba: 1, 1, 0, 1
         Rectangle:
-            pos: self.x + 20, self.y + 20
-            size: self.width - 40 , self.height - 40
+            pos: self.x + self.offset/2, self.y + self.offset/2
+            size: self.width - self.offset , self.height - self.offset
 <Boundry>:
     size: breite, hoehe
     canvas:

@@ -16,8 +16,9 @@ class Boundry(Widget):
 class Barier(Widget):
     height = NumericProperty(100)
     width = NumericProperty(100)
+    offset = NumericProperty(20)
     tmp=[0,0]
-    mode=0
+    mode=0 # mode 0: scale ; else: reposition
     selected = False
 
     def on_touch_down(self, touch):
@@ -28,7 +29,7 @@ class Barier(Widget):
 		select_lock=True
 		self.tmp=touch.pos
 		direction=Vector(self.center)-(touch.pos)
-		if abs(direction.y) < self.height/4 and abs(direction.x) < self.width/4:
+		if abs(direction.y) < self.height/4 and abs(direction.x) < self.width/4: #wenn touch im widget-randbereich
 		    self.mode=1
 
     def on_touch_move(self, touch):
@@ -56,6 +57,7 @@ class Barier(Widget):
 	select_lock=False
 
 class BounceBall(Widget):
+    radius = NumericProperty(20)
     velocity_x = NumericProperty(randint(-2,2))
     velocity_y = NumericProperty(randint(-2,2))
     velocity = ReferenceListProperty(velocity_x, velocity_y)
@@ -66,10 +68,11 @@ class BahnGame(Widget):
 #    ball = ObjectProperty(None)
     debug = ObjectProperty(None)
     boundry = ObjectProperty(None)
+    Dimention =  NumericProperty(20)
     def add_ball(self,instance):
-	self.add_widget(BounceBall(pos=self.center,velocity_x=randint(-2,2), velocity_y=randint(-2,2)))
+	self.add_widget(BounceBall(pos=self.center,velocity_x=randint(-2,2), velocity_y=randint(-2,2), radius=self.Dimention))
     def add_barier(self,instance):
-	self.add_widget(Barier(pos = (100, 100)))
+	self.add_widget(Barier(pos = (100, 100), offset=self.Dimention))
     def update(self, dt):
 	self.keep_distance()
 	self.mind_barier()
@@ -100,7 +103,7 @@ class BahnGame(Widget):
 			if str(bball) != str(obball):
 			    dist=Vector(bball.center).distance(obball.center)
 
-			    if dist < 100 and dist > 0:
+			    if dist < bball.radius*1.5 and dist > 0:
 				obballbball = 10* (Vector(bball.pos)-Vector(obball.pos)) #.normalize()
 		 		obballbball = Vector(bball.velocity)+(obballbball/(dist*dist))
 				bball.velocity_x=obballbball.x
@@ -115,13 +118,13 @@ class BahnGame(Widget):
 			    nearest=Vector(barier.center)
 			    nearestdist=nearest.distance(bball.center)
 			    if barier.height > barier.width:
-				for y in range(int(barier.y), int(barier.y+barier.height)):
+				for y in range(int(barier.y+barier.offset), int(barier.y+barier.height-barier.offset)):
 				    dist = Vector(barier.center_x,y).distance(bball.center)
 				    if dist < nearestdist:
 					nearest = Vector(barier.center_x,y)
 					nearestdist=dist
 			    else:
-				for x in range(int(barier.x), int(barier.x+barier.width)):
+				for x in range(int(barier.x+barier.offset), int(barier.x+barier.width-barier.offset)):
 				    dist = Vector(x,barier.center_y).distance(bball.center)
 				    if dist < nearestdist:
 					nearest = Vector(x,barier.center_y)
@@ -137,16 +140,23 @@ class BahnGame(Widget):
 #                                Line(points=[nearest.x+barierbball.x, nearest.y+barierbball.y , nearest.x, nearest.y], width=1)
 			    bball.velocity_x=barierbball.x
 			    bball.velocity_y=barierbball.y
+    def clean_up(self,instance):
+	for widget in self.children:
+	    if "BounceBall object" in str(widget) or "Barier object" in str(widget):
+		self.remove_widget(widget)
 
 class BahnApp(App):
     def build(self):
 	game = BahnGame()
 	but1 = Button(text='add Ball', size=(100,100), pos=(0,0))
 	but2 = Button(text='add Barier', size=(100,100), pos=(100,0))
+	but3 = Button(text='delete', size=(100,100), pos=(0,100))
 	but1.bind(on_press=game.add_ball)
 	but2.bind(on_press=game.add_barier)
+	but3.bind(on_press=game.clean_up)
 	game.add_widget(but1)
 	game.add_widget(but2)
+	game.add_widget(but3)
 	Clock.schedule_interval(game.update, 1.0/15.0)
         return game
 

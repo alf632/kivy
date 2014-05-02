@@ -83,15 +83,24 @@ class BahnGame(Widget):
 		        bball.velocity_y *= -1
 		if bball.right > self.boundry.right or bball.center_x-(bball.right-bball.center_x) < self.boundry.center_x-(self.boundry.right-self.boundry.center_x):
 		        bball.velocity_x *= -1
-
+		# MAX Speed
 		if bball.velocity_x > 3:
 			bball.velocity_x = 3
-                if bball.velocity_x < -3:
+                elif bball.velocity_x < -3:
                         bball.velocity_x = -3
                 if bball.velocity_y > 3:
                         bball.velocity_y = 3
-                if bball.velocity_y < -3:
+                elif bball.velocity_y < -3:
                         bball.velocity_y = -3
+		# Faulheit
+                if bball.velocity_x > 0:
+                        bball.velocity_x -= 0.01
+                elif bball.velocity_x < 0:
+                        bball.velocity_x += 0.01
+                if bball.velocity_y > 0:
+                        bball.velocity_y -= 0.01
+                elif bball.velocity_y < 0:
+                        bball.velocity_y += 0.01
 
 		bball.move()
 

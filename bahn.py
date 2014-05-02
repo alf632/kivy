@@ -8,6 +8,8 @@ from kivy.uix.button import Button
 from kivy.graphics import Ellipse, Color, Line
 from kivy.uix.scatter import Scatter
 
+select_lock = False
+
 class Boundry(Widget):
     pass
 
@@ -16,17 +18,21 @@ class Barier(Widget):
     width = NumericProperty(100)
     tmp=[0,0]
     mode=0
+    selected = False
 
     def on_touch_down(self, touch):
-	if abs((Vector(self.center)-touch.pos).x) <= self.width/2 and abs((Vector(self.center)-touch.pos).y) <= self.height/2:
-	    self.tmp=touch.pos
-	    direction=Vector(self.center)-(touch.pos)
-	    if abs(direction.y) < self.height/4 and abs(direction.x) < self.width/4:
-		self.mode=1
+	global select_lock
+	if select_lock == False:
+	    if abs((Vector(self.center)-touch.pos).x) <= self.width/2 and abs((Vector(self.center)-touch.pos).y) <= self.height/2:
+		self.selected=True
+		select_lock=True
+		self.tmp=touch.pos
+		direction=Vector(self.center)-(touch.pos)
+		if abs(direction.y) < self.height/4 and abs(direction.x) < self.width/4:
+		    self.mode=1
 
     def on_touch_move(self, touch):
-	pass
-        if abs((Vector(self.center)-touch.pos).x) <= self.width/2 and abs((Vector(self.center)-touch.pos).y) <= self.height/2:
+        if self.selected==True:
 	    if self.mode == 0:
 	        direction=Vector(self.center)-(touch.pos)
 	        if direction.y <= -self.height/4+20: # oben
@@ -45,6 +51,9 @@ class Barier(Widget):
 
     def on_touch_up(self, touch):
 	self.mode = 0
+	self.selected=False
+	global select_lock
+	select_lock=False
 
 class BounceBall(Widget):
     velocity_x = NumericProperty(randint(-2,2))

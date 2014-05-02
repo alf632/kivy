@@ -58,6 +58,7 @@ class Barier(Widget):
 
 class BounceBall(Widget):
     radius = NumericProperty(20)
+    neighbours={} # dict {neighbour: distance}
     velocity_x = NumericProperty(randint(-2,2))
     velocity_y = NumericProperty(randint(-2,2))
     velocity = ReferenceListProperty(velocity_x, velocity_y)
@@ -68,12 +69,20 @@ class BahnGame(Widget):
 #    ball = ObjectProperty(None)
     debug = ObjectProperty(None)
     boundry = ObjectProperty(None)
-    Dimention =  NumericProperty(20)
+    Dimention =  NumericProperty(50)
     def add_ball(self,instance):
 	self.add_widget(BounceBall(pos=self.center,velocity_x=randint(-2,2), velocity_y=randint(-2,2), radius=self.Dimention))
     def add_barier(self,instance):
 	self.add_widget(Barier(pos = (100, 100), offset=self.Dimention))
     def update(self, dt):
+	# for bball in self.children:
+#	    if bball = "bball"
+#		tread = (target=self.find_neighbours, args=bball)
+#		tread.start()
+	self.find_neighbours()
+	# for bball in self.children:
+#		tread = (target=self.keep_distance, args=bball)
+#		tread.join(find_neighboursThread)
 	self.keep_distance()
 	self.mind_barier()
 	for bball in self.children:
@@ -104,19 +113,25 @@ class BahnGame(Widget):
 
 		bball.move()
 
+    def find_neighbours(self):
+        for bball in self.children:
+            if "BounceBall object" in str(bball):
+		bball.neighbours={}
+                for obball in self.children:
+                    if "BounceBall object" in str(obball):
+                        if str(bball) != str(obball):
+                            dist=Vector(bball.center).distance(obball.center)
+			    bball.neighbours[obball]=dist
+
     def keep_distance(self):
 	for bball in self.children:
 	    if "BounceBall object" in str(bball):
-		for obball in self.children:
-		    if "BounceBall object" in str(obball):
-			if str(bball) != str(obball):
-			    dist=Vector(bball.center).distance(obball.center)
-
-			    if dist < bball.radius*1.5 and dist > 0:
-				obballbball = 10* (Vector(bball.pos)-Vector(obball.pos)) #.normalize()
-		 		obballbball = Vector(bball.velocity)+(obballbball/(dist*dist))
-				bball.velocity_x=obballbball.x
-				bball.velocity_y=obballbball.y
+		for obball in bball.neighbours.keys():
+		    if bball.neighbours[obball] < bball.radius*1.5 and bball.neighbours[obball] > 0:
+			obballbball = 10* (Vector(bball.pos)-Vector(obball.pos)) #.normalize()
+		 	obballbball = Vector(bball.velocity)+(obballbball/(bball.neighbours[obball]*bball.neighbours[obball]))
+			bball.velocity_x=obballbball.x
+			bball.velocity_y=obballbball.y
 
     def mind_barier(self):
 	for bball in self.children:

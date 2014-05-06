@@ -59,19 +59,26 @@ class Barier(Widget):
 class BounceBall(Widget):
     radius = NumericProperty(20)
     neighbours={} # dict {neighbour: distance}
+    neighbours_found=False
     velocity_x = NumericProperty(randint(-2,2))
     velocity_y = NumericProperty(randint(-2,2))
     velocity = ReferenceListProperty(velocity_x, velocity_y)
     def move(self):
         self.pos = Vector(*self.velocity) + self.pos
+	neighbours_found=False
 
 class BahnGame(Widget):
 #    ball = ObjectProperty(None)
     debug = ObjectProperty(None)
     boundry = ObjectProperty(None)
     Dimention =  NumericProperty(50)
+    balls=[]
     def add_ball(self,instance):
 	self.add_widget(BounceBall(pos=self.center,velocity_x=randint(-2,2), velocity_y=randint(-2,2), radius=self.Dimention))
+	self.balls=[]
+	for bball in self.children:
+	    if "BounceBall object" in str(bball):
+		self.balls.append(bball)
     def add_barier(self,instance):
 	self.add_widget(Barier(pos = (100, 100), offset=self.Dimention))
     def update(self, dt):
@@ -85,53 +92,50 @@ class BahnGame(Widget):
 #		tread.join(find_neighboursThread)
 	self.keep_distance()
 	self.mind_barier()
-	for bball in self.children:
-            if "BounceBall object" in str(bball):
+	for bball in self.balls:
 
-		if bball.top > self.boundry.top or bball.center_y-(bball.top-bball.center_y) < self.boundry.center_y-(self.boundry.top-self.boundry.center_y):
-		        bball.velocity_y *= -1
-		if bball.right > self.boundry.right or bball.center_x-(bball.right-bball.center_x) < self.boundry.center_x-(self.boundry.right-self.boundry.center_x):
-		        bball.velocity_x *= -1
-		# MAX Speed
-		if bball.velocity_x > 3:
-			bball.velocity_x = 3
-                elif bball.velocity_x < -3:
-                        bball.velocity_x = -3
-                if bball.velocity_y > 3:
-                        bball.velocity_y = 3
-                elif bball.velocity_y < -3:
-                        bball.velocity_y = -3
-		# Faulheit
-                if bball.velocity_x > 0:
-                        bball.velocity_x -= 0.01
-                elif bball.velocity_x < 0:
-                        bball.velocity_x += 0.01
-                if bball.velocity_y > 0:
-                        bball.velocity_y -= 0.01
-                elif bball.velocity_y < 0:
-                        bball.velocity_y += 0.01
+	    if bball.top > self.boundry.top or bball.center_y-(bball.top-bball.center_y) < self.boundry.center_y-(self.boundry.top-self.boundry.center_y):
+		bball.velocity_y *= -1
+  	    if bball.right > self.boundry.right or bball.center_x-(bball.right-bball.center_x) < self.boundry.center_x-(self.boundry.right-self.boundry.center_x):
+		bball.velocity_x *= -1
+	# MAX Speed
+	    if bball.velocity_x > 3:
+		bball.velocity_x = 3
+            elif bball.velocity_x < -3:
+                bball.velocity_x = -3
+            if bball.velocity_y > 3:
+                bball.velocity_y = 3
+            elif bball.velocity_y < -3:
+                bball.velocity_y = -3
+	# Faulheit
+            if bball.velocity_x > 0:
+                bball.velocity_x -= 0.01
+            elif bball.velocity_x < 0:
+                bball.velocity_x += 0.01
+            if bball.velocity_y > 0:
+                bball.velocity_y -= 0.01
+            elif bball.velocity_y < 0:
+                bball.velocity_y += 0.01
 
-		bball.move()
+    	    bball.move()
 
     def find_neighbours(self):
-        for bball in self.children:
-            if "BounceBall object" in str(bball):
-		bball.neighbours={}
-                for obball in self.children:
-                    if "BounceBall object" in str(obball):
-                        if str(bball) != str(obball):
-                            dist=Vector(bball.center).distance(obball.center)
-			    bball.neighbours[obball]=dist
+        for bball in self.balls:
+            bball.neighbours={}
+            for obball in self.balls:
+                if str(bball) != str(obball):
+                    dist=Vector(bball.center).distance(obball.center)
+                    bball.neighbours[obball]=dist
+            bball.neighbours_found=True
 
     def keep_distance(self):
-	for bball in self.children:
-	    if "BounceBall object" in str(bball):
-		for obball in bball.neighbours.keys():
-		    if bball.neighbours[obball] < bball.radius*1.5 and bball.neighbours[obball] > 0:
-			obballbball = 10* (Vector(bball.pos)-Vector(obball.pos)) #.normalize()
-		 	obballbball = Vector(bball.velocity)+(obballbball/(bball.neighbours[obball]*bball.neighbours[obball]))
-			bball.velocity_x=obballbball.x
-			bball.velocity_y=obballbball.y
+	for bball in self.balls:
+	    for obball in bball.neighbours.keys():
+		if bball.neighbours[obball] < bball.radius*1.5 and bball.neighbours[obball] > 0:
+		    obballbball = 10* (Vector(bball.pos)-Vector(obball.pos)) #.normalize()
+		    obballbball = Vector(bball.velocity)+(obballbball/(bball.neighbours[obball]*bball.neighbours[obball]))
+		    bball.velocity_x=obballbball.x
+		    bball.velocity_y=obballbball.y
 
     def mind_barier(self):
 	for bball in self.children:

@@ -7,8 +7,6 @@ from random import randint
 from kivy.uix.button import Button
 from kivy.graphics import Ellipse, Color, Line
 from kivy.uix.scatter import Scatter
-from threading import Thread
-from multiprocessing.queues import SimpleQueue
 
 select_lock = False
 
@@ -62,8 +60,6 @@ class BounceBall(Widget):
     radius = NumericProperty(20)
     neighbours={} # dict {neighbour: distance}
     neighbours_found=False
-    distance_kept=False
-    bariers_minded=False
     velocity_x = NumericProperty(randint(-2,2))
     velocity_y = NumericProperty(randint(-2,2))
     velocity = ReferenceListProperty(velocity_x, velocity_y)
@@ -77,7 +73,6 @@ class BahnGame(Widget):
     boundry = ObjectProperty(None)
     Dimention =  NumericProperty(50)
     balls=[]
-    pending_balls=[]
     def add_ball(self,instance):
 	self.add_widget(BounceBall(pos=self.center,velocity_x=randint(-2,2), velocity_y=randint(-2,2), radius=self.Dimention))
 	self.balls=[]
@@ -87,23 +82,16 @@ class BahnGame(Widget):
     def add_barier(self,instance):
 	self.add_widget(Barier(pos = (100, 100), offset=self.Dimention))
     def update(self, dt):
-	self.pending_balls=self.balls
-	for bball in self.balls:
-	   bball.distance_kept=False
-	   bball.bariers_minded=False
-	   bball.thread_find = Thread(target=self.find_neighbours, args=(self,bball))
-	   bball.thread_dist = Thread(target=self.keep_distance, args=(self,bball))
-	   bball.thread_barier = Thread(target=self.mind_barier, args=(self,bball))
-           bball.thread_find.start() 
-           bball.thread_dist.start()
-	   bball.thread_barier.start()
-
-	while len(self.pending_balls) > 0:
-		pass
-#		print "balls: %s pending_balls: %s" %(len(self.balls),len(self.pending_balls))
-#	self.find_neighbours()
-#	self.keep_distance()
-#	self.mind_barier()
+	# for bball in self.children:
+#	    if bball = "bball"
+#		tread = (target=self.find_neighbours, args=bball)
+#		tread.start()
+	self.find_neighbours()
+	# for bball in self.children:
+#		tread = (target=self.keep_distance, args=bball)
+#		tread.join(find_neighboursThread)
+	self.keep_distance()
+	self.mind_barier()
 	for bball in self.balls:
 
 	    if bball.top > self.boundry.top or bball.center_y-(bball.top-bball.center_y) < self.boundry.center_y-(self.boundry.top-self.boundry.center_y):
@@ -131,37 +119,27 @@ class BahnGame(Widget):
 
     	    bball.move()
 
-    def find_neighbours(self,overhead,bball):
-	    print "start find"
-            if bball.neighbours_found == False:
-                bball.neighbours={}
-                for obball in self.balls:
-                    if str(bball) != str(obball):
-                        dist=Vector(bball.center).distance(obball.center)
-                        bball.neighbours[obball]=dist
-                bball.neighbours_found=True
-	    print "end find"
+    def find_neighbours(self):
+        for bball in self.balls:
+            bball.neighbours={}
+            for obball in self.balls:
+                if str(bball) != str(obball):
+                    dist=Vector(bball.center).distance(obball.center)
+                    bball.neighbours[obball]=dist
+            bball.neighbours_found=True
 
-    def keep_distance(self,overhead,bball):
-	    bball.thread_find.join()
-	    print "start dist"
+    def keep_distance(self):
+	for bball in self.balls:
 	    for obball in bball.neighbours.keys():
 		if bball.neighbours[obball] < bball.radius*1.5 and bball.neighbours[obball] > 0:
 		    obballbball = 10* (Vector(bball.pos)-Vector(obball.pos)) #.normalize()
 		    obballbball = Vector(bball.velocity)+(obballbball/(bball.neighbours[obball]*bball.neighbours[obball]))
 		    bball.velocity_x=obballbball.x
 		    bball.velocity_y=obballbball.y
-		    bball.distance_kept=True
-		    if bball.bariers_minded==True:
-			self.pending_balls.remove(bball)
-	    print "barier_minded: "+str(bball.bariers_minded)
-	    print "end dist"
 
-    def mind_barier(self,overhead,bball):
-#	for bball in self.balls:
-#	    if "BounceBall object" in str(bball):
-		bball.thread_find.join()
-		print "start barier"
+    def mind_barier(self):
+	for bball in self.children:
+	    if "BounceBall object" in str(bball):
 		for barier in self.children:
 		    if "Barier object" in str(barier):
 			if bball.collide_widget(barier):
@@ -190,12 +168,6 @@ class BahnGame(Widget):
 #                                Line(points=[nearest.x+barierbball.x, nearest.y+barierbball.y , nearest.x, nearest.y], width=1)
 			    bball.velocity_x=barierbball.x
 			    bball.velocity_y=barierbball.y
-			    bball.bariers_minded=True
-			    if bball.distance_kept==True:
-				self.pending_balls.remove(bball)
-		print "distance_kept "+str(bball.distance_kept)
-		print "end barier"
-
     def clean_up(self,instance):
 	for widget in self.children:
 	    if "BounceBall object" in str(widget) or "Barier object" in str(widget):

@@ -7,6 +7,8 @@ from random import randint
 from kivy.uix.button import Button
 from kivy.graphics import Ellipse, Color, Line
 from kivy.uix.scatter import Scatter
+from multiprocessing import Process , Queue
+
 
 select_lock = False
 
@@ -108,6 +110,17 @@ class BounceBall(Widget):
                   self.velocity_x=barierbball.x
                   self.velocity_y=barierbball.y
 
+    def calculate(self, game):
+	    print "enter calcualtion %s" %(self.velocity)
+            print "parameter: self: %s game:%s" %(self, game)
+	    print "find_neighbours"
+            self.find_neighbours(game)
+            print "keep_distance"
+            self.keep_distance()
+            print "mind_barier"
+            self.mind_barier(game)
+            print "queue.put %s" %(self.velocity)
+	    self.queue.put(self.velocity)
 
 class BahnGame(Widget):
 #    ball = ObjectProperty(None)
@@ -125,11 +138,26 @@ class BahnGame(Widget):
 	self.add_widget(Barier(pos = (100, 100), offset=self.Dimention))
 
     def update(self, dt):
-	for bball in self.balls:
+	pending_balls=self.balls
 
-	    bball.find_neighbours(self) # als self wird game uebergeben, in der methode wird das als game referenziert, dort ist self der bball
-	    bball.keep_distance()
-	    bball.mind_barier(self)
+	for bball in self.balls: # threads starten
+	    bball.queue = Queue()
+	    bball.proc = Process(target=bball.calculate, args=(self,))
+	    print "start proc %s of bball: %s" %(bball.proc, bball)
+	    bball.proc.start()
+
+#	while len(pending_balls) > 0: # warten bis alle threads fertig
+#	    self.debug.text="pending balls: %s / %s" %(len(pending_balls), len(self.balls))
+#	self.debug.text="pending balls: %s / %s" %(len(pending_balls), len(self.balls))
+
+	for bball in self.balls:
+	    print "before: %s" %(bball.velocity)
+	    print "joining %s" %(bball.proc)
+            bball.proc.join()
+	    print "after join %s" %(bball.proc)
+            bball.velocity=bball.queue.get()
+	    pending_balls.remove(bball)
+	    print "after: %s" %(bball.velocity)
 
 	    if bball.top > self.boundry.top or bball.center_y-(bball.top-bball.center_y) < self.boundry.center_y-(self.boundry.top-self.boundry.center_y):
 		bball.velocity_y *= -1
@@ -154,6 +182,7 @@ class BahnGame(Widget):
             elif bball.velocity_y < 0:
                 bball.velocity_y += 0.01
 
+	    print "move %s" %(bball)
     	    bball.move()
 
     def clean_up(self,instance):
@@ -173,7 +202,7 @@ class BahnApp(App):
 	game.add_widget(but1)
 	game.add_widget(but2)
 	game.add_widget(but3)
-	Clock.schedule_interval(game.update, 1.0/15.0)
+	Clock.schedule_interval(game.update, 1.0/20.0)
         return game
 
 
